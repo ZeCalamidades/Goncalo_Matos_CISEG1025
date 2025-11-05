@@ -1,1 +1,1 @@
-status = input("Escreve o preço: ")
+status = input("Escreva o preço:")
