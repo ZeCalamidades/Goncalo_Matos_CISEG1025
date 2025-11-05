@@ -1,0 +1,1 @@
+print("XXXX\nXXXX\nXXXX\nXXXX")
