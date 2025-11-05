@@ -1,4 +1,4 @@
-status = input("Escrebe o status do servidor (ok ou erro): ")
+status = input("Escreve o status do servidor (ok ou erro): ")
 try:
     tempo_resposta = int(input("Digite o tempo de resposta: "))
 except ValueError:
