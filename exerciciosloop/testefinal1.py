@@ -34,7 +34,6 @@ def check():
                 total += 1
             div += 1
 
-        # ----- verificar perfeito -----
         soma = 0
         div = 1
         while div < valor:
@@ -44,13 +43,13 @@ def check():
 
         perfeito = (soma == valor)
 
-        # ----- mostrar resultados -----
+        
         print(f"Valor {valor} | Primo: {'Sim' if primo else 'Não'} | Divisores: {total} | Perfeito: {'Sim' if perfeito else 'Não'}")
 
         # pausa a cada 10 números
         contador += 1
         if contador == 10:
-            continuar = input("Mostrar mais 10? (S/N): ").upper()
+            continuar = input("Mostrar mais 10? (S/N): ")
             if continuar != "S":
                 print("A parar...")
                 break
@@ -60,7 +59,7 @@ def check():
 def calculadora():
     while True:
         print("\nOpções: + | - | * | / | tabuada | sair")
-        ope = input("Escolha a operação: ").lower()
+        ope = input("Escolha a operação: ")
 
         if ope in ["+", "-", "*", "/"]:
             # validar números
