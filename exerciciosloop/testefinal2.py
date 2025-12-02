@@ -26,12 +26,12 @@ while True:
                 print ("Não pode estar vazio")
                 mor = input("Morada: ")
             tele = input("Numero de Telemovel: ")
-            while tele == "" or len(tele) < 9:
-                print ("Não pode estar vazio ou ser inválido")
+            while not tele.isdigit() or len(tele) != 9:
+                print("O telemóvel deve ter exatamente 9 dígitos numéricos.")
                 tele = input("Numero de Telemovel: ")
             ni = input("Nif: ")
-            while ni == "" or len(ni) < 9:
-                print ("Não pode estar vazio ou ser inválido")
+            while not ni.isdigit() or len(ni) != 9:
+                print("O NIF deve ter exatamente 9 dígitos numéricos.")
                 ni = input("Nif: ")
             compr = float(input("Compra: "))
             while compr < 0:
