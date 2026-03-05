@@ -1,143 +1,82 @@
-# =========================
-# FUNÇÕES AUXILIARES
-# =========================
+Marcas = []
+Modelos = []
 
-def ler_numero():
-    while True:
-        try:
-            n = int(input("Introduza um número (1 a 1000): "))
-            if 1 <= n <= 1000:
-                return n
-            else:
-                print("Erro: número fora do intervalo.")
-        except ValueError:
-            print("Erro: introduza um número inteiro válido.")
+max_carros = 100
 
+#Funções
 
-def eh_primo(n):
-    if n < 2:
-        return False
-    for i in range(2, int(n ** 0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
+def Introduzir_dados():
+    if len(Modelos) >= max_carros:
+        print("Numero máximo de carros atingido")
+        return
+    
+    Marca = input("Introduz a marca: ")
+    Modelo = input("Introduz o modelo: ")
 
+    for i in range(len(Marcas)):
+        if Marca == Marcas[i] and Modelo == Modelos[i]:
+            print("Carro já inserido!")
+            return
+    
+    Marcas.append(Marca)
+    Modelos.append(Modelo)
+    print("Carro adicionado com sucesso!")        
 
-def contar_divisores(n):
-    return sum(1 for i in range(1, n + 1) if n % i == 0)
+def Procurar_dados():
+    procura = input("Indique a marca ou o modelo que procure")
+    encontrado = False
 
+    for i in range(len(Marcas)):
+        if (procura.lower in Marcas[i].lower() or 
+            procura.lower in Modelos[i].lower()): 
+            print(f"{i} | {Marcas[i]} | {Modelos[i]}")
+            encontrado = True
+    
+    if not encontrado:
+        print("Carro não encontrado")
 
-def eh_perfeito(n):
-    soma = 0
-    for i in range(1, n):
-        if n % i == 0:
-            soma += i
-    return soma == n
+def Eliminar_dados():
+    if len(Marcas) == 0:
+        print("Não existem Carros cadastrados.")
+        return
 
+    for i in range(len(Modelos)):
+        print(f"Indice:{i} | Modelo:{Modelos[i]} | Marca:{Marcas[i]}")
+    try:
+        indice = int(input("Índice do Carro a excluir: "))
+        if indice < 0 or indice >= len(Marcas):
+            print("Índice inválido.")
+            return
 
-def par_ou_impar(n):
-    return "Par" if n % 2 == 0 else "Ímpar"
+        confirmar = input("Tem a certeza que deseja excluir? (s/n)")
+        if confirmar.lower() == "s":
+            Marcas.pop(indice)
+            Modelos.pop(indice)
+            print("Carro excluído com sucesso.")
+        else:
+            print("Exclusão cancelada.")
 
+    except ValueError:
+        print("Entrada inválida. Use números.")
 
-# =========================
-# MENU 1 – VER NÚMEROS
-# =========================
-
-def menu_numeros():
-    valores = []
-    total_lidos = 0
-
-    while total_lidos < 50:
-        print("\n--- MENU NÚMEROS ---")
-
-        for _ in range(10):
-            if total_lidos >= 50:
-                break
-
-            n = ler_numero()
-            valores.append(n)
-            total_lidos += 1
-
-            print(f"\nNúmero: {n}")
-            print(f"Primo: {'Sim' if eh_primo(n) else 'Não'}")
-            print(f"Divisores: {contar_divisores(n)}")
-            print(f"Perfeito: {'Sim' if eh_perfeito(n) else 'Não'}")
-            print(f"Paridade: {par_ou_impar(n)}")
-
-        if total_lidos < 50:
-            op = input("\nDeseja continuar? (s = continuar / n = menu): ").lower()
-            if op == "n":
-                break
-
-
-# =========================
-# MENU 2 – CALCULADORA
-# =========================
-
-def menu_calculadora():
-    operacoes = 0
-
-    while True:
-        print("\n--- CALCULADORA ---")
-        print("1 - Soma")
-        print("2 - Subtração")
-        print("3 - Multiplicação")
-        print("4 - Divisão")
-        print("5 - Voltar ao menu principal")
-
-        opc = input("Escolha a opção: ")
-
-        if opc == "5":
-            break
-
-        if opc not in ["1", "2", "3", "4"]:
-            print("Opção inválida.")
-            continue
-
-        n1 = ler_numero()
-        n2 = ler_numero()
-
-        try:
-            if opc == "1":
-                res = n1 + n2
-            elif opc == "2":
-                res = n1 - n2
-            elif opc == "3":
-                res = n1 * n2
-            elif opc == "4":
-                res = n1 / n2
-
-            print(f"Resultado: {res}")
-            operacoes += 1
-
-        except ZeroDivisionError:
-            print("Erro: divisão por zero.")
-
-        if operacoes == 5:
-            cont = input("\n5 cálculos realizados. Continuar? (s/n): ").lower()
-            if cont == "n":
-                break
-            operacoes = 0
-
-
-# =========================
-# MENU PRINCIPAL
-# =========================
-
+#Menu
 while True:
     print("\n===== MENU PRINCIPAL =====")
-    print("1 - Ver Números")
-    print("2 - Calculadora")
-    print("3 - Sair do Programa")
+    print("1 - Introduzir Dados")
+    print("2 - Procurar Dados")
+    print("3 - Eliminar Dados")
+    print("4 - Sair do Programa")
 
     opcao = input("Escolha a opção: ")
 
     match opcao:
         case "1":
-            menu_numeros()
+            Introduzir_dados()
         case "2":
-            menu_calculadora()
+            Procurar_dados()
         case "3":
+            Eliminar_dados()
+        case "4":
             print("Programa terminado.")
             break
         case _:
