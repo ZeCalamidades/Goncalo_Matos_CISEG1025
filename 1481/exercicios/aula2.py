@@ -23,3 +23,6 @@ for i in range(len(nomes)-1):
             nomes[i],nomes[i+1]=nomes[i+1],nomes[i]
         it+=1
 print(nomes)
+
+
+
