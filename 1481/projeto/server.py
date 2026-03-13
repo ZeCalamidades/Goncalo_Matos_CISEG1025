@@ -3,7 +3,6 @@ import threading
 from security import detect_personal_data
 from datetime import datetime
 
-#HOST = "0.0.0.0"
 HOST = "127.0.0.1"
 PORT = 5000
 
@@ -13,6 +12,7 @@ def get_time():
     return datetime.now().strftime("%H:%M")
 
 def broadcast(message):
+
     for client in clients.values():
         try:
             client.send(message.encode())
@@ -24,7 +24,7 @@ def handle_client(client):
     name = client.recv(1024).decode()
     clients[name] = client
 
-    print(f"[SERVER]: {name} conectou-se.")
+    print(f"\n[{get_time()}] [SERVER]: {name} conectou-se.")
 
     broadcast(f"\n[{get_time()}] [SERVER] {name} entrou no chat\n")
 
@@ -35,8 +35,38 @@ def handle_client(client):
 
             if not message:
                 break
+            
+            # comando exit
+            if message.lower() == "/exit":
+                break
+            if message == "/users":
 
-            print(f"{name}: {message}")
+                user_list = ", ".join(clients.keys())
+
+                client.send(
+                    f"[{get_time()}] [SERVER] Utilizadores online: {user_list}".encode())
+
+                continue
+            if message.startswith("/msg"):
+
+                try:
+                        _, target, private_msg = message.split(" ", 2)
+                except ValueError:
+                    client.send("[SERVER] Uso: /msg utilizador mensagem".encode())
+                    continue
+
+                if target not in clients:
+                    client.send(f"[{get_time()}] [SERVER] Utilizador não encontrado.".encode())
+                    continue
+
+                clients[target].send(
+                    f"[{get_time()}] [PM] {name}: {private_msg}".encode())
+
+                client.send(
+                    f"[{get_time()}] [PM → {target}] {private_msg}".encode())
+
+                continue
+            print(f"\n[{get_time()}] {name}: {message}")
 
             warning = detect_personal_data(message)
 
@@ -65,11 +95,12 @@ def handle_client(client):
         except:
             break
 
-    print(f"[SERVER]: {name} desconectou-se.")
+    del clients[name]
+        
+    print(f"\n[{get_time()}] [SERVER]: {name} desconectou-se.")
 
     broadcast(f"\n[{get_time()}] [SERVER] {name} saiu do chat\n")
 
-    del clients[name]
     client.close()
 
 
@@ -79,13 +110,13 @@ def start_server():
     server.bind((HOST, PORT))
     server.listen()
 
-    print("Servidor iniciado...")
+    print(f"[{get_time()}] Servidor iniciado...")
 
     while True:
 
         client, addr = server.accept()
 
-        print("Novo cliente conectado:", addr)
+        print(f"[{get_time()}] Novo cliente conectado:", addr)
 
         thread = threading.Thread(
             target=handle_client,

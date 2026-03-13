@@ -1,9 +1,9 @@
 import socket
 import threading
+import os
 from datetime import datetime
 
 
-#HOST = "192.168.68.100" #online
 HOST = "127.0.0.1"     #host
 PORT = 5000
 
@@ -18,7 +18,6 @@ def get_time():
     return datetime.now().strftime("%H:%M")
 
 def receive():
-
     while True:
         try:
             message = client.recv(1024).decode()
@@ -27,13 +26,24 @@ def receive():
                 break
 
             print(message)
-
         except:
             break
+
 def send():
 
     while True:
         message = input("> ")
+
+        if message.lower() == "/exit":           #sair do terminal
+            client.send("/exit".encode())
+            client.close()
+            break
+
+        if message == "/clean":                  #limpar o terminal
+            os.system("cls")
+            continue
+
+
         client.send(message.encode())
 
 def login():
