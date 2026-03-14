@@ -2,6 +2,8 @@ import socket
 import threading
 from security import detect_personal_data
 from datetime import datetime
+from profiles import add_profile
+from profiles import load_profiles
 
 HOST = "127.0.0.1"
 PORT = 5000
@@ -22,6 +24,12 @@ def broadcast(message):
 def handle_client(client):
 
     name = client.recv(1024).decode()
+
+    if name in clients:
+        client.send("[SERVER] Nome já está em uso.".encode())
+        client.close()
+        return
+
     clients[name] = client
 
     print(f"\n[{get_time()}] [SERVER]: {name} conectou-se.")
@@ -36,7 +44,41 @@ def handle_client(client):
             if not message:
                 break
             
+            #comando /create_profile
+            if message == "/create_profile":
+
+                client.send("Nome: ".encode())
+                name_p = client.recv(1024).decode()
+
+                client.send("Idade: ".encode())
+                age = client.recv(1024).decode()
+
+                client.send("Genero: ".encode())
+                gender = client.recv(1024).decode()
+
+                profile = {
+                    "name": name_p,
+                    "age": age,
+                    "gender": gender
+    }
+
+                add_profile(profile)
+
+                client.send("[SERVER] Perfil criado.".encode())
+                continue
             
+            #comando /profiles
+            if message == "/profiles":
+
+                profiles = load_profiles()
+
+                text = "\nPerfis disponíveis:\n"
+
+                for p in profiles:
+                    text += f"{p['name']} | {p['age']} | {p['gender']}\n"
+
+                client.send(text.encode())
+                continue
             # comando /exit
             if message.lower() == "/exit":
                 break
