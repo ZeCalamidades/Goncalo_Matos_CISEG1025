@@ -36,9 +36,12 @@ def handle_client(client):
             if not message:
                 break
             
-            # comando exit
+            
+            # comando /exit
             if message.lower() == "/exit":
                 break
+            
+            # comando /users    
             if message == "/users":
 
                 user_list = ", ".join(clients.keys())
@@ -47,6 +50,7 @@ def handle_client(client):
                     f"[{get_time()}] [SERVER] Utilizadores online: {user_list}".encode())
 
                 continue
+            #comando /msg
             if message.startswith("/msg"):
 
                 try:
