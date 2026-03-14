@@ -46,14 +46,6 @@ def send():
 
         client.send(message.encode())
 
-def login():
-    global name
-    name = input("Nome: ")
-    client.send(name.encode())
-
-
-login()
-
 threading.Thread(target=receive).start()
 
 send()

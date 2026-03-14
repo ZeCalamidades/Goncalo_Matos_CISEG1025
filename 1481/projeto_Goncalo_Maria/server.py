@@ -4,6 +4,7 @@ from security import detect_personal_data
 from datetime import datetime
 from profiles import add_profile
 from profiles import load_profiles
+from profiles import find_profile
 
 HOST = "127.0.0.1"
 PORT = 5000
@@ -23,19 +24,81 @@ def broadcast(message):
 
 def handle_client(client):
 
-    name = client.recv(1024).decode()
+    client.send("[SERVER] Use /login ou /register".encode())
 
-    if name in clients:
-        client.send("[SERVER] Nome já está em uso.".encode())
-        client.close()
-        return
+    name = None
 
-    clients[name] = client
+    # ---------------- AUTHENTICATION ----------------
+    while not name:
 
+        message = client.recv(1024).decode()
+
+        # REGISTER
+        if message == "/register":
+
+            client.send("Username: ".encode())
+            username = client.recv(1024).decode()
+
+            client.send("Password: ".encode())
+            password = client.recv(1024).decode()
+
+            client.send("Age: ".encode())
+            age = client.recv(1024).decode()
+
+            client.send("Gender: ".encode())
+            gender = client.recv(1024).decode()
+
+            if find_profile(username):
+                client.send("[SERVER] Username já existe.".encode())
+                continue
+
+            profile = {
+                "username": username,
+                "password": password,
+                "age": age,
+                "gender": gender
+            }
+
+            add_profile(profile)
+
+            client.send("[SERVER] Registo criado. Faça login.".encode())
+
+
+        # LOGIN
+        elif message == "/login":
+
+            client.send("Username: ".encode())
+            username = client.recv(1024).decode()
+
+            client.send("Password: ".encode())
+            password = client.recv(1024).decode()
+
+            profile = find_profile(username)
+
+            if profile and profile["password"] == password:
+
+                if username in clients:
+                    client.send("[SERVER] Utilizador já está online.".encode())
+                    continue
+
+                name = username
+                clients[name] = client
+
+                client.send("[SERVER] Login bem sucedido.".encode())
+
+            else:
+                client.send("[SERVER] Login inválido.".encode())
+
+        else:
+            client.send("[SERVER] Use /login ou /register".encode())
+
+
+    # ---------------- USER CONNECTED ----------------
     print(f"\n[{get_time()}] [SERVER]: {name} conectou-se.")
-
     broadcast(f"\n[{get_time()}] [SERVER] {name} entrou no chat\n")
 
+
+    # ---------------- CHAT LOOP ----------------
     while True:
 
         try:
@@ -43,31 +106,25 @@ def handle_client(client):
 
             if not message:
                 break
-            
-            #comando /create_profile
-            if message == "/create_profile":
 
-                client.send("Nome: ".encode())
-                name_p = client.recv(1024).decode()
 
-                client.send("Idade: ".encode())
-                age = client.recv(1024).decode()
+            # EXIT
+            if message.lower() == "/exit":
+                break
 
-                client.send("Genero: ".encode())
-                gender = client.recv(1024).decode()
 
-                profile = {
-                    "name": name_p,
-                    "age": age,
-                    "gender": gender
-    }
+            # USERS
+            if message == "/users":
 
-                add_profile(profile)
+                user_list = ", ".join(clients.keys())
 
-                client.send("[SERVER] Perfil criado.".encode())
+                client.send(
+                    f"[{get_time()}] [SERVER] Utilizadores online: {user_list}".encode()
+                )
                 continue
-            
-            #comando /profiles
+
+
+            # PROFILES
             if message == "/profiles":
 
                 profiles = load_profiles()
@@ -75,48 +132,43 @@ def handle_client(client):
                 text = "\nPerfis disponíveis:\n"
 
                 for p in profiles:
-                    text += f"{p['name']} | {p['age']} | {p['gender']}\n"
+                    text += f"{p['username']} | {p['age']} | {p['gender']}\n"
 
                 client.send(text.encode())
                 continue
-            # comando /exit
-            if message.lower() == "/exit":
-                break
-            
-            # comando /users    
-            if message == "/users":
 
-                user_list = ", ".join(clients.keys())
 
-                client.send(
-                    f"[{get_time()}] [SERVER] Utilizadores online: {user_list}".encode())
-
-                continue
-            #comando /msg
+            # PRIVATE MESSAGE
             if message.startswith("/msg"):
 
                 try:
-                        _, target, private_msg = message.split(" ", 2)
+                    _, target, private_msg = message.split(" ", 2)
                 except ValueError:
                     client.send("[SERVER] Uso: /msg utilizador mensagem".encode())
                     continue
 
                 if target not in clients:
-                    client.send(f"[{get_time()}] [SERVER] Utilizador não encontrado.".encode())
+                    client.send(
+                        f"[{get_time()}] [SERVER] Utilizador não encontrado.".encode()
+                    )
                     continue
 
                 clients[target].send(
-                    f"[{get_time()}] [PM] {name}: {private_msg}".encode())
+                    f"[{get_time()}] [PM] {name}: {private_msg}".encode()
+                )
 
                 client.send(
-                    f"[{get_time()}] [PM → {target}] {private_msg}".encode())
+                    f"[{get_time()}] [PM → {target}] {private_msg}".encode()
+                )
 
                 continue
-            print(f"\n[{get_time()}] {name}: {message}")
 
+
+            # GDPR CHECK
             warning = detect_personal_data(message)
 
             if warning:
+
                 action, data_type = warning
 
                 if action == "block":
@@ -126,6 +178,7 @@ def handle_client(client):
                     continue
 
                 if action == "warn":
+
                     client.send(
                         f"Aviso: possível {data_type} na mensagem. Enviar mesmo assim? (s/n)".encode()
                     )
@@ -136,13 +189,19 @@ def handle_client(client):
                         client.send("Mensagem bloqueada.".encode())
                         continue
 
+
+            print(f"\n[{get_time()}] {name}: {message}")
+
             broadcast(f"[{get_time()}] {name}: {message}")
+
 
         except:
             break
 
+
+    # ---------------- DISCONNECT ----------------
     del clients[name]
-        
+
     print(f"\n[{get_time()}] [SERVER]: {name} desconectou-se.")
 
     broadcast(f"\n[{get_time()}] [SERVER] {name} saiu do chat\n")

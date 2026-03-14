@@ -17,3 +17,12 @@ def add_profile(profile):
     profiles = load_profiles()
     profiles.append(profile)
     save_profiles(profiles)
+
+def find_profile(username):
+    profiles = load_profiles()
+
+    for p in profiles:
+        if p["username"] == username:
+            return p
+
+    return None    
